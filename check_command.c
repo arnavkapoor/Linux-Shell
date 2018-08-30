@@ -13,6 +13,10 @@ void select_command(char *argv[ARG_MAX], int argc)
         run_pwd(argv, argc);
     if (strcmp(argv[0],"echo") == 0) 
         run_echo(argv, argc);
+    if (strcmp(argv[0],"cd") == 0) 
+        run_cd(argv, argc);
+    if (strcmp(argv[0],"ls") == 0) 
+        run_ls(argv, argc); 
 }
 
 void individual_command(char *input) // rename to find_command
