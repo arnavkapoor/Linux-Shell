@@ -11,6 +11,7 @@ void individual_command(char *inp);
 void run_pwd  (char *argv[ARG_MAX],int argc);
 void run_echo (char *argv[ARG_MAX],int argc);
 void run_cd	  (char *argv[ARG_MAX] , int argc);
-void run_ls(char *argv[ARG_MAX] , int argc);
+void run_ls	  (char *argv[ARG_MAX] , int argc);
+void run_pinfo(char *argv[ARG_MAX] , int argc);
 
 #endif

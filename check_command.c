@@ -7,16 +7,56 @@
 #include "headerfile.h"
 
 
-void select_command(char *argv[ARG_MAX], int argc)
+void select_command(char *argv[ARG_MAX], int argc,int bgproc)
 {
-    if (strcmp(argv[0],"pwd") == 0) 
+    if (strcmp(argv[0],"pwd") == 0 || (strcmp(argv[0],"pwd&") == 0)) 
+    {
         run_pwd(argv, argc);
-    if (strcmp(argv[0],"echo") == 0) 
+        return;
+    }
+    
+    if (strcmp(argv[0],"echo") == 0 || (strcmp(argv[0],"echo&") == 0)) 
+    {
         run_echo(argv, argc);
-    if (strcmp(argv[0],"cd") == 0) 
+        return;
+    }
+    
+    if (strcmp(argv[0],"cd") == 0 || (strcmp(argv[0],"cd&") == 0))
+    {   
         run_cd(argv, argc);
-    if (strcmp(argv[0],"ls") == 0) 
+        return;
+    }
+    
+    if (strcmp(argv[0],"ls") == 0 || (strcmp(argv[0],"ls&") == 0))
+    {   
         run_ls(argv, argc); 
+        return;
+    }
+    
+    if (strcmp(argv[0],"pinfo") == 0 || (strcmp(argv[0],"pinfo&") == 0))
+    {   
+        run_pinfo(argv, argc); 
+        return;
+    }
+    
+    int status;
+    int pid = fork();
+   
+    if(pid == 0)
+    {    
+        int ret = execvp(argv[0],argv);
+        if(ret < 0)
+            printf("Invalid Command\n");
+    }
+    
+    else if(pid != 0)
+    {
+        if(bgproc != 1)
+            waitpid(-1,&status,WUNTRACED); 
+        else
+            printf("%d\n",pid);
+        return;
+    }
 }
 
 void individual_command(char *input) // rename to find_command
@@ -27,17 +67,33 @@ void individual_command(char *input) // rename to find_command
     char* token;
     char* argv[ARG_MAX];
 
-    while (token = strtok_r(cpinput,delimit,&cpinput))
-      {
-         argv[argc] = malloc(sizeof(char)*(strlen(token)+1));
-         strcpy(argv[argc],token);
-         argc++;
-      }
+    token = strtok(cpinput,delimit);
     
-    select_command(argv,argc);
+    while (token != NULL)
+    {
+        argv[argc] = malloc(sizeof(char)*(strlen(token)+1));
+        strcpy(argv[argc],token);
+        argc++;
+        token = strtok(NULL,delimit);   
+    }
 
-    for (int i = 0; i < argc; ++i)
+    int bgproc = 0;
+
+    if(argv[argc-1][0] == '&')
+        {
+            bgproc = 1;
+            argc--;
+        }
+    if(argv[argc-1][strlen(argv[argc-1])-1] == '&')
+        {
+            bgproc = 1;
+            argv[argc-1][strlen(argv[argc-1])-1] = '\0';
+        }
+
+    argv[argc] = NULL;
+    select_command(argv,argc,bgproc);
+
+    for (int i = 0; i <= argc; ++i)
        free(argv[i]);
 
 }
-

@@ -15,8 +15,19 @@ int main () {
         prompt();
         char command[ARG_MAX];
         fgets(command,ARG_MAX,stdin);
-        char *input = strtok(command, ";");
+        int status;
+        int retval = waitpid(-1,&status,WNOHANG); 
+        
+        if(retval > 0)
+            printf("Process with pid %d has finished\n",retval);
+        
+        if(strcmp(command,"\n") == 0)
+           continue;
+    
+        if(strcmp(command,"exit\n") == 0)
+            break;
 
+        char *input = strtok(command, ";");
         while(input!=NULL)
         {
             individual_command(input);

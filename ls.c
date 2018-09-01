@@ -33,12 +33,14 @@ void run_ls(char *argv[ARG_MAX] , int argc)
 					longlist = 1;	
 			}
 		}
+		else if(argv[i][0] == '&')
+			continue;
 		else if(argv[i][0] == '~')
 			sprintf(mydir,"%s%s",myroot,&argv[i][1]);
 		else 
 			sprintf(mydir,"%s",&argv[i][0]);
 	}
-		
+
 	DIR* dir;
 	dir = opendir(mydir);
 	struct dirent *file;
@@ -58,10 +60,10 @@ void run_ls(char *argv[ARG_MAX] , int argc)
 	if (dir != NULL)
 		file = readdir(dir);
 
-	printf("%d %s\n",flag,file->d_name);
 	
-	while(file!=NULL || flag == 1 )
+	while(file !=NULL || flag == 1 )
 	{
+		
 		struct stat filestat;
 		struct passwd *usr;
 		struct passwd *grp;
@@ -71,18 +73,31 @@ void run_ls(char *argv[ARG_MAX] , int argc)
 		
 		if(flag == 1)
 			lstat(mydir,&filestat);		
-	
+
+		if( flag == 0 && (file->d_name)[0] == '.' && hiddenfiles == 0)
+		{
+			file = readdir(dir);
+			continue;
+		}
+
+		if(!longlist && flag == 0)
+			printf("  %-18s\n",file->d_name);
+		
+		if(!longlist && flag == 1)
+			printf("  %-18s\n",mydir);
+				
+
 		if(longlist)
 		{
 			usr = getpwuid(filestat.st_uid);
 			grp = getpwuid(filestat.st_gid);
 			
-	    	if(S_ISDIR(filestat.st_mode))
-	    		printf("d");
-	    	else if (S_ISLNK(filestat.st_mode))
-	    		printf("l");
-	    	else
-	    		printf("-");
+			if(S_ISDIR(filestat.st_mode))
+				printf("d");
+			else if (S_ISLNK(filestat.st_mode))
+				printf("l");
+			else
+				printf("-");
 			
 			printf( (filestat.st_mode & S_IRUSR) ? "r" : "-");
 			printf( (filestat.st_mode & S_IWUSR) ? "w" : "-");
@@ -97,10 +112,10 @@ void run_ls(char *argv[ARG_MAX] , int argc)
 			printf("  %-20ld",filestat.st_nlink);
 			printf("  %-20s",usr->pw_name);
 			printf("  %-20s",grp->pw_name);	
-			if(flag == 1)
+			if(flag == 0)
 				printf("  %-20s",file->d_name);
-			else
-				printf("  %-20s",mydir);
+			else if(flag == 1)
+				printf("  %-30s",mydir);
 
 			char* mystr = ctime(&filestat.st_mtime);
 			printf("%.*s\n",12,mystr+4);
