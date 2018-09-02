@@ -39,6 +39,18 @@ void select_command(char *argv[ARG_MAX], int argc,int bgproc)
         return;
     }
     
+    if (strcmp(argv[0],"remindme") == 0 || (strcmp(argv[0],"remindme&") == 0))
+    {   
+        run_remindme(argv, argc); 
+        return;
+    }
+
+    if (strcmp(argv[0],"clock") == 0 || (strcmp(argv[0],"clock&") == 0))
+    {   
+        run_clock(argv, argc); 
+        return;
+    }
+    
     int status;
     int pid = fork();
    
@@ -66,15 +78,14 @@ void individual_command(char *input) // rename to find_command
     int maxarglength = 0;
     char* token;
     char* argv[ARG_MAX];
+    token = strtok_r(cpinput,delimit,&cpinput);
 
-    token = strtok(cpinput,delimit);
-    
-    while (token != NULL)
+    while (token != NULL) 
     {
         argv[argc] = malloc(sizeof(char)*(strlen(token)+1));
         strcpy(argv[argc],token);
         argc++;
-        token = strtok(NULL,delimit);   
+        token = strtok_r(cpinput,delimit,&cpinput); 
     }
 
     int bgproc = 0;
@@ -84,6 +95,7 @@ void individual_command(char *input) // rename to find_command
             bgproc = 1;
             argc--;
         }
+
     if(argv[argc-1][strlen(argv[argc-1])-1] == '&')
         {
             bgproc = 1;
@@ -95,5 +107,6 @@ void individual_command(char *input) // rename to find_command
 
     for (int i = 0; i <= argc; ++i)
        free(argv[i]);
-
+    
+    return;
 }

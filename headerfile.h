@@ -1,5 +1,3 @@
-#ifndef HEADER_FILE
-#define HEADER_FILE
 
 #define ARG_MAX 2048
 
@@ -8,10 +6,10 @@ char delimit[6];
 
 void prompt();
 void individual_command(char *inp);
-void run_pwd  (char *argv[ARG_MAX],int argc);
-void run_echo (char *argv[ARG_MAX],int argc);
-void run_cd	  (char *argv[ARG_MAX] , int argc);
-void run_ls	  (char *argv[ARG_MAX] , int argc);
-void run_pinfo(char *argv[ARG_MAX] , int argc);
-
-#endif
+void run_pwd   (char *argv[ARG_MAX],int argc);
+void run_echo  (char *argv[ARG_MAX],int argc);
+void run_cd	   (char *argv[ARG_MAX] , int argc);
+void run_ls	   (char *argv[ARG_MAX] , int argc);
+void run_pinfo (char *argv[ARG_MAX] , int argc);
+void run_remindme (char *argv[ARG_MAX] , int argc);
+void run_clock (char *argv[ARG_MAX] , int argc);
