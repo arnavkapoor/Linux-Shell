@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/utsname.h>
+#include <fcntl.h> 
 #include "headerfile.h"
-
 
 void select_command(char *argv[ARG_MAX], int argc,int bgproc)
 {
@@ -53,12 +53,13 @@ void select_command(char *argv[ARG_MAX], int argc,int bgproc)
     
     int status;
     int pid = fork();
-   
+
     if(pid == 0)
     {    
         int ret = execvp(argv[0],argv);
         if(ret < 0)
             printf("Invalid Command\n");
+        exit(0);
     }
     
     else if(pid != 0)
@@ -71,6 +72,91 @@ void select_command(char *argv[ARG_MAX], int argc,int bgproc)
     }
 }
 
+void execute_pipes(char *argv[ARG_MAX], int argc,int bgproc,int in,int out)
+{
+    int fd[2];
+
+    int f_in = in;
+    int f_out = out;
+
+    char *argv_cp[ARG_MAX];
+    int indlen = 0;
+    int status;
+    
+    for (int i = 0; i < argc; ++i)
+    {
+        if(strcmp(argv[i],"|") == 0)
+        {
+            argv_cp[indlen] = malloc(sizeof(char)*(ARG_MAX+1));
+            argv_cp[indlen] = NULL;
+            
+            pipe(fd);
+            f_out = fd[1];
+            int pid = fork();
+
+            if(pid == 0)
+            {    
+                if(f_in != 0)
+                {
+                    dup2 (f_in,0);
+                    close (f_in);
+                }   
+                if(f_out != 0)
+                {
+                    dup2 (f_out,1);
+                    close (f_out);
+                }
+                
+                int ret = execvp(argv_cp[0],argv_cp);
+                if(ret < 0)
+                    fprintf(stderr,"Invalid Command\n");
+                exit(0);
+            }
+
+            else if(pid != 0)
+                waitpid(-1,&status,WUNTRACED); 
+
+            close(fd[1]);
+            f_in = fd[0];
+
+            for (int j = 0; j <= indlen ; ++j)
+                free(argv_cp[j]);
+            
+            indlen = 0;
+            continue;
+        }
+
+        argv_cp[indlen] = malloc(sizeof(char)*(ARG_MAX+1));
+        strcpy(argv_cp[indlen],argv[i]);
+        indlen++;
+    }
+    
+    dup2 (f_in,0);
+    
+    if(out != 1)
+    {
+        dup2(out,1);
+        close (out);
+    }
+
+    argv_cp[indlen] = malloc(sizeof(char)*(ARG_MAX+1));
+    argv_cp[indlen] = NULL;
+    
+    int pid = fork();
+    if(pid == 0)
+    {    
+        int ret = execvp(argv_cp[0],argv_cp);
+        if(ret < 0)
+            fprintf(stderr,"Invalid Command\n");
+        exit(0);
+    }
+
+    else if(pid != 0)
+        waitpid(-1,&status,WUNTRACED); 
+    
+    return;
+}
+
 void individual_command(char *input) // rename to find_command
 {
     char* cpinput = input;
@@ -79,34 +165,73 @@ void individual_command(char *input) // rename to find_command
     char* token;
     char* argv[ARG_MAX];
     token = strtok_r(cpinput,delimit,&cpinput);
+    
+    int in = 0;
+    int out = 1;
+
+    int ipset = 0;
+    int opset = 0;
+
+    int original_ip = dup(0); 
+    int original_op = dup(1);
 
     while (token != NULL) 
-    {
+    {        
         argv[argc] = malloc(sizeof(char)*(strlen(token)+1));
         strcpy(argv[argc],token);
         argc++;
+        if(strcmp(token,"<")==0)
+            ipset = argc;
+        if(strcmp(token,">")==0)    
+            opset = argc;
+
         token = strtok_r(cpinput,delimit,&cpinput); 
     }
+    
+    if(ipset > 0)
+    {
+        in = open(argv[ipset],O_RDONLY); 
+            //to-do error handling
+        dup2(in,0);
+        for (int i = ipset-1; i+2 < argc; ++i)
+            argv[i]=argv[i+2];
+        argc-=2;
+    } 
+
+    if(opset > 0)
+    {
+        out = open(argv[opset],O_WRONLY);
+            //to-do error handling and append
+        dup2(out,1);
+        argc-=2;
+        argv[opset]='\0';
+        argv[opset-1]='\0';
+    }         
+
 
     int bgproc = 0;
 
     if(argv[argc-1][0] == '&')
-        {
-            bgproc = 1;
-            argc--;
-        }
+    {
+        bgproc = 1;
+        argc--;
+    }
 
     if(argv[argc-1][strlen(argv[argc-1])-1] == '&')
-        {
-            bgproc = 1;
-            argv[argc-1][strlen(argv[argc-1])-1] = '\0';
-        }
+    {
+        bgproc = 1;
+        argv[argc-1][strlen(argv[argc-1])-1] = '\0';
+    }
 
     argv[argc] = NULL;
-    select_command(argv,argc,bgproc);
+    
+    execute_pipes(argv,argc,bgproc,in,out);
+    //select_command(argv,argc,bgproc);
 
     for (int i = 0; i <= argc; ++i)
        free(argv[i]);
-    
-    return;
+
+   dup2(original_ip,0);
+   dup2(original_op,1);
+   return;
 }

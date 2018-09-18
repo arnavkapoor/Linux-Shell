@@ -25,7 +25,7 @@ int main () {
            continue;
     
         if(strcmp(command,"exit\n") == 0)
-            break;
+            exit(0);
 
         char *input = strtok(command, ";");
         while(input!=NULL)

@@ -51,6 +51,7 @@ void run_clock(char *argv[ARG_MAX] , int argc)
         	sleep(each);
         	printf("\n");
         }
+        exit(0);
 	}
 	
 	return;

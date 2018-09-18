@@ -13,6 +13,7 @@ void run_remindme(char *argv[ARG_MAX] , int argc)
     {
         sleep(atoi(argv[1]));
         printf("%s\n",argv[2]);
+        exit(0);
     }
     return;
 }   

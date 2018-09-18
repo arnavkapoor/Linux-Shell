@@ -34,13 +34,19 @@ void run_pinfo(char *argv[ARG_MAX] , int argc)
 			if(i == 3 || i == 6 || i == 18)
 				fputs (line,stdout); 
 		}
-		fclose ( file );
+		
+		fclose(file);
 	}
+	
 	char path2[ARG_MAX];
 	sprintf(path2,"%s%s%s","/proc/",my_pid,"/exe");
 	
 	char execpath[ARG_MAX];
 	int len = readlink(path2,execpath,ARG_MAX-1);
+	if(len < 0){
+		perror("bash");
+		return;
+	}
 	execpath[len] = '\0';
 	printf("%s\n",execpath);
 }	
