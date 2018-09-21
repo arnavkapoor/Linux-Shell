@@ -6,21 +6,27 @@
 #include "headerfile.h"
 
 int main () {
-   
     getcwd(myroot,ARG_MAX-1);
     strncpy(delimit," \t\r\n\v\f",6);
    
     while(1)
     {   
+    	signal(SIGINT, sigintHandler);     
+    	signal(SIGTSTP, sigstopHandler);     
         prompt();
         char command[ARG_MAX];
         fgets(command,ARG_MAX,stdin);
         int status;
+        
         int retval = waitpid(-1,&status,WNOHANG); 
-        
         if(retval > 0)
-            printf("Process with pid %d has finished\n",retval);
-        
+           	{
+           		printf("Process %s with pid %d has finished\n",process[retval],retval);
+        		process[retval]=NULL;
+        		run_or_stop[retval]=0;
+        		free(process[retval]);
+	        }
+
         if(strcmp(command,"\n") == 0)
            continue;
     
