@@ -8,6 +8,35 @@
 #include <errno.h>
 #include "headerfile.h"
 
+int checkstatus(int my_pid)
+{
+	char path1[ARG_MAX];
+	char str[ARG_MAX];
+	sprintf(str,"%d",my_pid);
+	sprintf(path1,"%s%s%s","/proc/",str,"/status");
+	FILE *file = fopen (path1,"r");
+	if(file == NULL)
+		return 0;
+	
+	if (file != NULL)
+	{
+		int i = 0;
+		char line [128]; 
+		while (fgets ( line, sizeof(line), file ) != NULL )
+		{
+			i++;
+			if(i == 3)
+				break;
+		}
+		for (int i = 0; i < 128 && line[i]!='\0'; ++i)
+		{
+			if(line[i] == 'T')
+				return 1;		
+		}
+		return 2;
+	}
+}
+
 void run_jobs(char *argv[ARG_MAX] , int argc)
 {
 	if(argc != 1)
@@ -20,12 +49,14 @@ void run_jobs(char *argv[ARG_MAX] , int argc)
 	{
 		if(process[i]!=NULL)
 			{
-				if(run_or_stop[i]==1)
-					printf("Running ");
-					
-				if(run_or_stop[i]==2)
+				int retval = checkstatus(i);
+				printf("%d\n",retval);
+				if(retval==0)
+					continue;
+				if(retval==1)
 					printf("Stopped ");
-					
+				if(retval==2)
+					printf("Running ");
 				printf("%d %s %d\n",priority,process[i],i);
 				priority++;
 			}

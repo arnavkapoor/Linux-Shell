@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/utsname.h>
+#include <sys/mman.h>
 #include <fcntl.h> 
 #include "headerfile.h"
 
@@ -91,45 +92,11 @@ void select_command(char *argv[ARG_MAX], int argc,int bgproc)
         run_fg(argv, argc);
         return;
     }
-    int status;
-    int pid = fork();
-    
-    if(pid == 0)
-    {        
-        int ret = execvp(argv[0],argv);
-        if(ret < 0)
-            printf("Invalid Command\n");
-        exit(0);
-    }
-    
-    else if(pid != 0)
-    {
-        if(bgproc != 1)
-        {    
-            process[pid] = malloc(sizeof(char)*(ARG_MAX+1));
-            strcpy(process[pid],argv[0]);       
-            run_or_stop[pid]=1;
-            waitpid(-1,&status,WUNTRACED);
-            signal(SIGTSTP, sigstopHandler);     
-            if(run_or_stop[pid] == 1)
-            {
-                run_or_stop[pid]=0;
-                process[pid]=NULL;
-                free(process[pid]);
-            }
-        }
-        
-        else
-        {
-            process[pid] = malloc(sizeof(char)*(ARG_MAX+1));
-            strcpy(process[pid],argv[0]);       
-            run_or_stop[pid]=1;
-            printf("[%d]\n",pid); 
-        }
-    return;
-    }
-}
 
+    fork_execute(argv,argc,bgproc);
+    return;
+
+}
 void execute_pipes(char *argv[ARG_MAX], int argc,int bgproc,int in,int out)
 {
     int fd[2];

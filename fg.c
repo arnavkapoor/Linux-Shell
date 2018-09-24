@@ -27,7 +27,9 @@ void run_fg(char *argv[ARG_MAX] , int argc)
 		{
 			if(priority == atoi(argv[1]))
 			{
-				kill(i,18);
+				kill(i,SIGSTOP);
+				kill(i,SIGCONT);
+				global_child = i;
 				waitpid(i,&status,WUNTRACED);
 				flag = 1;
 				break;

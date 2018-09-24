@@ -3,17 +3,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 #include "headerfile.h"
 
+
+void sigHandler(int signum){
+    printf("main pid is %d\n",main_pid);
+    printf("caller pid is %d\n",getpid());
+    printf("killing this guy %d\n",global_child);
+    if(global_child != -1)
+        kill(global_child,signum);
+    
+    global_child = -1;
+    return;
+}
+
+
 int main () {
+    global_child = -1;
+    main_pid = getpid();
     getcwd(myroot,ARG_MAX-1);
     strncpy(delimit," \t\r\n\v\f",6);
-   
+    
     while(1)
     {   
-    	signal(SIGINT, sigintHandler);     
-    	signal(SIGTSTP, sigstopHandler);     
-        prompt();
+    	signal(SIGINT, sigHandler);     
+        signal(SIGTSTP, sigHandler);     
+
+    	prompt();
         char command[ARG_MAX];
         fgets(command,ARG_MAX,stdin);
         int status;
@@ -23,7 +40,6 @@ int main () {
            	{
            		printf("Process %s with pid %d has finished\n",process[retval],retval);
         		process[retval]=NULL;
-        		run_or_stop[retval]=0;
         		free(process[retval]);
 	        }
 

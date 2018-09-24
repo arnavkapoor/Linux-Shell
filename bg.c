@@ -24,8 +24,7 @@ void run_bg(char *argv[ARG_MAX] , int argc)
 		{
 			if(priority == atoi(argv[1]))
 			{
-				run_or_stop[i]=1;
-				kill(i,18);
+				kill(i,SIGCONT);
 				flag = 1;
 				break;
 			}
