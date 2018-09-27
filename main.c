@@ -8,9 +8,7 @@
 
 
 void sigHandler(int signum){
-    printf("main pid is %d\n",main_pid);
-    printf("caller pid is %d\n",getpid());
-    printf("killing this guy %d\n",global_child);
+    printf("signal is %d\n",signum);
     if(global_child != -1)
         kill(global_child,signum);
     

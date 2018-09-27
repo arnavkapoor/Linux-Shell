@@ -100,7 +100,6 @@ void select_command(char *argv[ARG_MAX], int argc,int bgproc)
 void execute_pipes(char *argv[ARG_MAX], int argc,int bgproc,int in,int out)
 {
     int fd[2];
-
     int f_in = in;
     int f_out = out;
 
@@ -177,6 +176,7 @@ void execute_pipes(char *argv[ARG_MAX], int argc,int bgproc,int in,int out)
 
 void individual_command(char *input) // rename to find_command
 {
+    
     char* cpinput = input;
     int argc = 0;
     int maxarglength = 0;
@@ -221,7 +221,6 @@ void individual_command(char *input) // rename to find_command
         for (int i = ipset-1; i+2 < argc; ++i)
             argv[i]=argv[i+2];
         argc-=2;
-        close(in);
     } 
 
     if(opset > 0)
@@ -236,7 +235,6 @@ void individual_command(char *input) // rename to find_command
         argc-=2;
         argv[opset]='\0';
         argv[opset-1]='\0';
-        close(out);
     }         
 
 
@@ -252,7 +250,6 @@ void individual_command(char *input) // rename to find_command
         argc-=2;
         argv[apset]='\0';
         argv[apset-1]='\0';
-        close(out);
     }         
 
     int bgproc = 0;
@@ -268,8 +265,8 @@ void individual_command(char *input) // rename to find_command
         bgproc = 1;
         argv[argc-1][strlen(argv[argc-1])-1] = '\0';
     }
-
     argv[argc] = NULL;
+
     
     execute_pipes(argv,argc,bgproc,in,out);
     for (int i = 0; i <= argc; ++i)
